@@ -17,7 +17,6 @@ import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
 import org.osgi.framework.ServiceReference;
 
-import doug.nutana.core.WriteStream;
 import doug.nutana.http.Http;
 import doug.nutana.http.HttpServer;
 import doug.nutana.http.HttpServerRequest;
@@ -28,6 +27,8 @@ import doug.nutana.http.HttpServerResponse;
  */
 public class TestServer implements IApplication {
 
+	private int count = 0;
+	
 	@Override
 	public Object start(IApplicationContext context) throws Exception {
 		ServiceReference<Http> ref = Activator.getContext().getServiceReference(Http.class);
@@ -40,7 +41,7 @@ public class TestServer implements IApplication {
 				response.setHeader("Content-Type", "text/plain");
 				response.writeHead(200);
 				response.setEncoding(Charset.forName("UTF-8"));
-				response.write("Hello from Nutana!");
+				response.write("Hello from Nutana! " + (++count));
 				response.end();
 			}
 		});
