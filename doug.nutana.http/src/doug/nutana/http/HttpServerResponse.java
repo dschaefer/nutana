@@ -14,20 +14,18 @@ import java.util.Map;
 
 import doug.nutana.core.WriteStream;
 
-public interface HttpServerResponse {
+public abstract class HttpServerResponse extends WriteStream {
 
-	void setHeader(String key, String value);
+	public abstract void setHeader(String key, String value);
 	
-	Map<String, String> getHeaders();
+	public abstract Map<String, String> getHeaders();
 	
-	void setTrailer(String key, String value);
+	public abstract void setTrailer(String key, String value);
 	
-	Map<String, String> getTrailers();
+	public abstract Map<String, String> getTrailers();
 
-	void writeHead(int statusCode);
+	public abstract void writeHead(int statusCode);
 	
-	void writeHead(int statusCode, String reason);
-	
-	WriteStream getWriteStream();
+	public abstract void writeHead(int statusCode, String reason);
 	
 }

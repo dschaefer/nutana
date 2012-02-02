@@ -21,7 +21,7 @@ import doug.nutana.core.ReadStream;
 import doug.nutana.http.HttpServerRequest;
 import doug.nutana.net.Socket;
 
-public class HttpServerRequestImpl implements HttpServerRequest, ReadStream.DataListener {
+public class HttpServerRequestImpl extends HttpServerRequest {
 
 	private final HttpServerImpl server;
 	private final Socket socket;
@@ -48,7 +48,16 @@ public class HttpServerRequestImpl implements HttpServerRequest, ReadStream.Data
 		this.server = server;
 		this.socket = socket;
 		
-		socket.getReadStream().onData(this);
+		socket.getReadStream().onData(new ReadStream.DataListener() {
+			@Override
+			public void handleData(ByteBuffer buffer) {
+				while (buffer.hasRemaining())
+					if (inHeader)
+						handleHeaderData(buffer);
+					else
+						handleChunkData(buffer);
+			}
+		});
 	}
 	
 	public Socket getSocket() {
@@ -90,48 +99,29 @@ public class HttpServerRequestImpl implements HttpServerRequest, ReadStream.Data
 		return trailers;
 	}
 
-	private class RequestReadStream extends ReadStream {
-		@Override
-		public void pause() {
-			// TODO
-		}
-
-		@Override
-		public void resume() {
-			// TODO
-		}
-
-		@Override
-		public void close() throws IOException {
-			socket.close();
-		}
-		
-		@Override
-		public void fireData(ByteBuffer buffer) {
-			super.fireData(buffer);
-		}
-		
-		@Override
-		public void fireEnd() {
-			super.fireEnd();
-		}
-		
-	}
-	
-	private final RequestReadStream readStream = new RequestReadStream();
-	
 	@Override
-	public ReadStream getReadStream() {
-		return readStream;
+	public void pause() {
+		// TODO
 	}
 
 	@Override
-	public void handleData(ByteBuffer buffer) {
-		while (buffer.hasRemaining())
-			if (inHeader)
-				handleHeaderData(buffer);
-			else
-				handleChunkData(buffer);
+	public void resume() {
+		// TODO
+	}
+
+	@Override
+	public void close() throws IOException {
+		socket.close();
+	}
+	
+	@Override
+	public void fireData(ByteBuffer buffer) {
+		super.fireData(buffer);
+	}
+	
+	@Override
+	public void fireEnd() {
+		super.fireEnd();
 	}
 	
 	private void handleHeaderData(ByteBuffer buffer) {
@@ -194,7 +184,7 @@ public class HttpServerRequestImpl implements HttpServerRequest, ReadStream.Data
 					if (size > 0) {
 						atSize = false;
 					} else {
-						readStream.fireEnd();
+						fireEnd();
 						inHeader = true;
 						return;
 					}
@@ -226,7 +216,7 @@ public class HttpServerRequestImpl implements HttpServerRequest, ReadStream.Data
 					
 					buffer.limit(p1);
 					
-					readStream.fireData(buffer);
+					fireData(buffer);
 					
 					buffer.position(p1);
 					buffer.limit(l0);

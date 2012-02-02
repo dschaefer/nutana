@@ -37,13 +37,11 @@ public class TestServer implements IApplication {
 		server.onRequest(new HttpServer.RequestListener() {
 			@Override
 			public void handleRequest(HttpServerRequest request, HttpServerResponse response) {
-				response.setHeader("Transfer-Encoding", "chunked");
 				response.setHeader("Content-Type", "text/plain");
 				response.writeHead(200);
-				WriteStream writeStream = response.getWriteStream();
-				writeStream.setEncoding(Charset.forName("UTF-8"));
-				writeStream.write("Hello from Nutana!");
-				writeStream.end();
+				response.setEncoding(Charset.forName("UTF-8"));
+				response.write("Hello from Nutana!");
+				response.end();
 			}
 		});
 		server.listen(new InetSocketAddress(8001));

@@ -14,22 +14,20 @@ import java.util.Map;
 
 import doug.nutana.core.ReadStream;
 
-public interface HttpServerRequest {
+public abstract class HttpServerRequest extends ReadStream {
 
-	String getMethod();
+	public abstract String getMethod();
 	
-	String getURL();
+	public abstract String getURL();
 	
-	String getVersion();
+	public abstract String getVersion();
 	
-	String getHeader(String key);
+	public abstract String getHeader(String key);
 	
-	Map<String, String> getHeaders();
+	public abstract Map<String, String> getHeaders();
 	
-	String getTrailer(String key);
+	public abstract String getTrailer(String key);
 	
-	Map<String, String> getTrailers();
-	
-	ReadStream getReadStream();
+	public abstract Map<String, String> getTrailers();
 	
 }

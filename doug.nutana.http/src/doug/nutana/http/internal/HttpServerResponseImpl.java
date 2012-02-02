@@ -20,7 +20,7 @@ import doug.nutana.core.WriteStream;
 import doug.nutana.http.HttpServerResponse;
 import doug.nutana.net.Socket;
 
-public class HttpServerResponseImpl implements HttpServerResponse {
+public class HttpServerResponseImpl extends HttpServerResponse {
 
 	private static final String VERSION = "HTTP/1.1"; //$NON-NLS-1$
 	
@@ -33,6 +33,9 @@ public class HttpServerResponseImpl implements HttpServerResponse {
 	public HttpServerResponseImpl(Socket socket) {
 		this.socket = socket;
 		this.socketWriteStream = socket.getWriteStream();
+		
+		// set up for chunking
+		headers.put("Transfer-Encoding", "chunked");
 	}
 
 	@Override
@@ -79,72 +82,63 @@ public class HttpServerResponseImpl implements HttpServerResponse {
 		
 		buffer.append("\r\n");
 
-		writeStream.writeAscii(buffer);
+		writeAscii(buffer);
 	}
 
-	private class ChunkWriteStream extends WriteStream {
-		@Override
-		protected void doWrite() {
-			while (!pendingBuffers.isEmpty()) {
-				ByteBuffer srcBuffer = pendingBuffers.removeFirst();
-	
-				// Send size
-				writeAscii(String.format("%x\r\n", srcBuffer.remaining())); //$NON-NLS-1$
-				
-				// Send the buffer
-				// TODO would be nice to just pass the src down
-				while (srcBuffer.hasRemaining()) {
-					ByteBuffer destBuffer = socketWriteStream.getBuffer();
-					destBuffer.put(srcBuffer); // assuming same size
-					destBuffer.limit(destBuffer.position());
-					destBuffer.rewind();
-					socketWriteStream.write(destBuffer);
-				}
-				
-				// Send terminator
-				writeAscii("\r\n"); // $NON-NLS-1$
-			}
-			
-			// No more buffers, ask for more
-			fireDrain();
-		}
-
-		@Override
-		public void end() {
-			// last chunk
-			writeAscii("0\r\n\r\n");
-		}
-
-		@Override
-		protected void close() throws IOException {
-			socket.close();
-		}
-		
-		public void writeAscii(CharSequence text) {
-			ByteBuffer writeBuffer = socketWriteStream.getBuffer();
-			int n = text.length();
-			for (int i = 0; i < n; ++i) {
-				if (!writeBuffer.hasRemaining()) {
-					socketWriteStream.write(writeBuffer);
-					writeBuffer = socketWriteStream.getBuffer();
-				}
-				
-				// Works because it's ascii
-				writeBuffer.put((byte)text.charAt(i));
-			}
-			writeBuffer.limit(writeBuffer.position());
-			writeBuffer.rewind();
-			socketWriteStream.write(writeBuffer);
-		}
-	}
-	
-	private ChunkWriteStream writeStream = new ChunkWriteStream();
-	
 	@Override
-	public WriteStream getWriteStream() {
-		return writeStream;
+	protected void doWrite() {
+		while (!pendingBuffers.isEmpty()) {
+			ByteBuffer srcBuffer = pendingBuffers.removeFirst();
+	
+			// Send size
+			writeAscii(String.format("%x\r\n", srcBuffer.remaining())); //$NON-NLS-1$
+				
+			// Send the buffer
+			// TODO would be nice to just pass the src down
+			while (srcBuffer.hasRemaining()) {
+				ByteBuffer destBuffer = socketWriteStream.getBuffer();
+				destBuffer.put(srcBuffer); // assuming same size
+				destBuffer.limit(destBuffer.position());
+				destBuffer.rewind();
+				socketWriteStream.write(destBuffer);
+			}
+				
+			// Send terminator
+			writeAscii("\r\n"); // $NON-NLS-1$
+		}
+			
+		// No more buffers, ask for more
+		fireDrain();
 	}
 
+	@Override
+	public void end() {
+		// last chunk
+		writeAscii("0\r\n\r\n");
+	}
+
+	@Override
+	protected void close() throws IOException {
+		socket.close();
+	}
+	
+	public void writeAscii(CharSequence text) {
+		ByteBuffer writeBuffer = socketWriteStream.getBuffer();
+		int n = text.length();
+		for (int i = 0; i < n; ++i) {
+			if (!writeBuffer.hasRemaining()) {
+				socketWriteStream.write(writeBuffer);
+				writeBuffer = socketWriteStream.getBuffer();
+			}
+				
+			// Works because it's ascii
+			writeBuffer.put((byte)text.charAt(i));
+		}
+		writeBuffer.limit(writeBuffer.position());
+		writeBuffer.rewind();
+		socketWriteStream.write(writeBuffer);
+	}
+	
 	private String getReasonPhrase(int responseCode) {
 		switch (responseCode) {
 		case 100:
