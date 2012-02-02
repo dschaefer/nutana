@@ -51,14 +51,18 @@ public class SocketImpl implements Socket {
 			socket.read(buffer, null, new CompletionHandler<Integer, Void>() {
 				@Override
 				public void completed(Integer result, Void attachment) {
-					buffer.limit(buffer.position());
-					buffer.rewind();
-					while (buffer.hasRemaining())
-						fireData(buffer);
-					synchronized (SocketReadStream.this) {
-						if (!paused) {
-							buffer.clear();
-							socket.read(buffer, null, this);
+					if (result < 0) {
+						fireEnd();
+					} else {
+						buffer.limit(buffer.position());
+						buffer.rewind();
+						while (buffer.hasRemaining())
+							fireData(buffer);
+						synchronized (SocketReadStream.this) {
+							if (!paused) {
+								buffer.clear();
+								socket.read(buffer, null, this);
+							}
 						}
 					}
 				}
