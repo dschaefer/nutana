@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Test
+Bundle-SymbolicName: doug.nutana.net.test
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: doug.nutana.net.test.Activator
+Require-Bundle: org.eclipse.core.runtime,
+ org.junit,
+ doug.nutana.net;bundle-version="1.0.0"
+Bundle-ActivationPolicy: lazy
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7

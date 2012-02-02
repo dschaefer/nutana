@@ -1,0 +1,26 @@
+/*******************************************************************************
+ * Copyright (c) 2012 Doug Schaefer and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *   Doug Schaefer - Initial API and implementation
+ *******************************************************************************/
+package doug.nutana.net;
+
+import java.io.IOException;
+
+import doug.nutana.core.ReadStream;
+import doug.nutana.core.WriteStream;
+
+public interface Socket {
+
+	ReadStream getReadStream();
+	
+	WriteStream getWriteStream();
+
+	void close() throws IOException;
+	
+}
