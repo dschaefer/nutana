@@ -41,13 +41,11 @@ public class TestServer implements IApplication {
 				if (request.getURL().equals("/")) {
 					response.setHeader("Content-Type", "text/plain");
 					response.writeHead(200);
-					response.setEncoding(Charset.forName("UTF-8"));
 					response.write("Hello from Nutana! " + (++count));
 					response.end();
 				} else if (request.getURL().equals("/end")) {
 					response.setHeader("Content-Type", "text/plain");
 					response.writeHead(200);
-					response.setEncoding(Charset.forName("UTF-8"));
 					response.write("Bye!");
 					response.end();
 					stop();

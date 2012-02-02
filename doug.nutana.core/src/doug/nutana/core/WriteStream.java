@@ -50,7 +50,7 @@ public abstract class WriteStream {
 
 	public void write(CharBuffer charBuffer) {
 		if (encoder == null)
-			throw new IllegalStateException();
+			encoder = Charset.forName("UTF-8").newEncoder();
 		CoderResult rc;
 		do {
 			ByteBuffer buffer = getBuffer();
