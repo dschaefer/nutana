@@ -11,8 +11,10 @@
 package doug.nutana.http.internal;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import doug.nutana.core.WriteStream;
 import doug.nutana.http.HttpServerResponse;
@@ -20,13 +22,17 @@ import doug.nutana.net.Socket;
 
 public class HttpServerResponseImpl implements HttpServerResponse {
 
+	private static final String VERSION = "HTTP/1.1"; //$NON-NLS-1$
+	
 	private final Socket socket;
+	private final WriteStream socketWriteStream;
 
 	Map<String, String> headers = new HashMap<>();
 	Map<String, String> trailers = new HashMap<>();
 
 	public HttpServerResponseImpl(Socket socket) {
 		this.socket = socket;
+		this.socketWriteStream = socket.getWriteStream();
 	}
 
 	@Override
@@ -56,31 +62,83 @@ public class HttpServerResponseImpl implements HttpServerResponse {
 
 	@Override
 	public void writeHead(int statusCode, String reason) {
-		// TODO Auto-generated method stub
+		StringBuffer buffer = new StringBuffer();
+		buffer.append(VERSION);
+		buffer.append(' ');
+		buffer.append(statusCode);
+		buffer.append(' ');
+		buffer.append(reason);
+		buffer.append("\r\n");
+		
+		for (Entry<String, String> entry : headers.entrySet()) {
+			buffer.append(entry.getKey());
+			buffer.append(": ");
+			buffer.append(entry.getValue());
+			buffer.append("\r\n");
+		}
+		
+		buffer.append("\r\n");
 
+		writeStream.writeAscii(buffer);
 	}
 
-	private class ResponseWriteStream extends WriteStream {
+	private class ChunkWriteStream extends WriteStream {
 		@Override
 		protected void doWrite() {
-			// TODO Auto-generated method stub
+			while (!pendingBuffers.isEmpty()) {
+				ByteBuffer srcBuffer = pendingBuffers.removeFirst();
+	
+				// Send size
+				writeAscii(String.format("%x\r\n", srcBuffer.remaining())); //$NON-NLS-1$
+				
+				// Send the buffer
+				// TODO would be nice to just pass the src down
+				while (srcBuffer.hasRemaining()) {
+					ByteBuffer destBuffer = socketWriteStream.getBuffer();
+					destBuffer.put(srcBuffer); // assuming same size
+					destBuffer.limit(destBuffer.position());
+					destBuffer.rewind();
+					socketWriteStream.write(destBuffer);
+				}
+				
+				// Send terminator
+				writeAscii("\r\n"); // $NON-NLS-1$
+			}
 			
+			// No more buffers, ask for more
+			fireDrain();
 		}
 
 		@Override
 		public void end() {
-			// TODO Auto-generated method stub
-			
+			// last chunk
+			writeAscii("0\r\n\r\n");
 		}
 
 		@Override
 		protected void close() throws IOException {
-			// TODO Auto-generated method stub
-			
+			socket.close();
+		}
+		
+		public void writeAscii(CharSequence text) {
+			ByteBuffer writeBuffer = socketWriteStream.getBuffer();
+			int n = text.length();
+			for (int i = 0; i < n; ++i) {
+				if (!writeBuffer.hasRemaining()) {
+					socketWriteStream.write(writeBuffer);
+					writeBuffer = socketWriteStream.getBuffer();
+				}
+				
+				// Works because it's ascii
+				writeBuffer.put((byte)text.charAt(i));
+			}
+			writeBuffer.limit(writeBuffer.position());
+			writeBuffer.rewind();
+			socketWriteStream.write(writeBuffer);
 		}
 	}
 	
-	private ResponseWriteStream writeStream = new ResponseWriteStream();
+	private ChunkWriteStream writeStream = new ChunkWriteStream();
 	
 	@Override
 	public WriteStream getWriteStream() {

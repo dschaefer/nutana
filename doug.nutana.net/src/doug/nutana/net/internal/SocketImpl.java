@@ -90,14 +90,9 @@ public class SocketImpl implements Socket {
 
 	private class SocketWriteStream extends WriteStream {
 
-		private boolean writePending = false;
-		
 		@Override
-		public void doWrite() {
+		protected void doWrite() {
 			// pendingBuffers already locked
-			if (writePending)
-				return;
-			
 			ByteBuffer buffer = pendingBuffers.removeFirst();
 			socket.write(buffer, buffer, new CompletionHandler<Integer, ByteBuffer>() {
 				@Override
@@ -105,10 +100,10 @@ public class SocketImpl implements Socket {
 					returnBuffer(buffer);
 					synchronized (pendingBuffers) {
 						if (pendingBuffers.isEmpty()) {
-							writePending = false;
 							fireDrain();
 						} else {
-							socket.write(pendingBuffers.removeFirst(), null, this);
+							ByteBuffer nextBuffer = pendingBuffers.removeFirst();
+							socket.write(nextBuffer, nextBuffer, this);
 						}
 					}
 				}
@@ -118,14 +113,11 @@ public class SocketImpl implements Socket {
 					fireError(exc);
 				}
 			});
-			
-			writePending = true;
 		}
 
 		@Override
 		public void end() {
-			// TODO Auto-generated method stub
-			
+			// No special handling for end in regular sockets
 		}
 
 		@Override

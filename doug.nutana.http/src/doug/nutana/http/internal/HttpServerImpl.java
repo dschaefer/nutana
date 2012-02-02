@@ -74,7 +74,7 @@ public class HttpServerImpl implements HttpServer {
 	public void handleRequest(HttpServerRequestImpl request) {
 		Socket socket = request.getSocket();
 		fireRequest(request, new HttpServerResponseImpl(socket));
-		new HttpServerRequestImpl(this, socket);
+//		new HttpServerRequestImpl(this, socket);
 	}
 	
 	private List<ErrorListener> errorListeners;

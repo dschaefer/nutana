@@ -26,6 +26,7 @@ public abstract class WriteStream {
 	// writing
 	
 	protected LinkedList<ByteBuffer> pendingBuffers = new LinkedList<>();
+	private boolean writePending = false;
 	
 	protected abstract void doWrite();
 	
@@ -40,7 +41,10 @@ public abstract class WriteStream {
 	public void write(ByteBuffer buffer) {
 		synchronized (pendingBuffers) {
 			pendingBuffers.addLast(buffer);
-			doWrite();
+			if (!writePending) {
+				writePending = true;
+				doWrite();
+			}
 		}
 	}
 
@@ -90,6 +94,10 @@ public abstract class WriteStream {
 	}
 	
 	protected void fireDrain() {
+		synchronized (pendingBuffers) {
+			writePending = false;
+		}
+		
 		if (drainListeners != null)
 			for (DrainListener listener : drainListeners)
 				listener.handleDrain();
