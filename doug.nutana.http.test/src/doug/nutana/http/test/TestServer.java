@@ -38,11 +38,23 @@ public class TestServer implements IApplication {
 		server.onRequest(new HttpServer.RequestListener() {
 			@Override
 			public void handleRequest(HttpServerRequest request, HttpServerResponse response) {
-				response.setHeader("Content-Type", "text/plain");
-				response.writeHead(200);
-				response.setEncoding(Charset.forName("UTF-8"));
-				response.write("Hello from Nutana! " + (++count));
-				response.end();
+				if (request.getURL().equals("/")) {
+					response.setHeader("Content-Type", "text/plain");
+					response.writeHead(200);
+					response.setEncoding(Charset.forName("UTF-8"));
+					response.write("Hello from Nutana! " + (++count));
+					response.end();
+				} else if (request.getURL().equals("/end")) {
+					response.setHeader("Content-Type", "text/plain");
+					response.writeHead(200);
+					response.setEncoding(Charset.forName("UTF-8"));
+					response.write("Bye!");
+					response.end();
+					stop();
+				} else {
+					response.writeHead(404);
+					response.end();
+				}
 			}
 		});
 		server.listen(new InetSocketAddress(8001));
@@ -56,9 +68,8 @@ public class TestServer implements IApplication {
 	}
 
 	@Override
-	public void stop() {
-		// TODO Auto-generated method stub
-
+	public synchronized void stop() {
+		notifyAll();
 	}
 
 }
