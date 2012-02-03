@@ -46,6 +46,7 @@ server in the http.test plugin. Looks like node, but in Java.
 * cassandra - async communications using Thrift to Cassandra
 * freemarker - FreeMarker template support for wapp.
 * mqtt - An MQTT broker
+* p2 - wapp interface to install/uninstall bundles
 
 Other general areas to consider:
 
