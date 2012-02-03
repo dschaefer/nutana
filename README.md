@@ -6,6 +6,8 @@ and use Equinox with p2 as the packaging system, shake and stir and see if
 it works and whether a community forms from it, which, BTW,
 is actually the best thing about node.js.
 
+## Example
+
 Here is an example of what we're trying to achieve. This is from the first test
 server in the http.test plugin. Looks like node, but in Java.
 
@@ -34,3 +36,17 @@ server in the http.test plugin. Looks like node, but in Java.
         }
     });
     server.listen(new InetSocketAddress(8001));
+
+## TODO list
+
+* wapp - web apps similar to expressjs.
+* file - async access (nio.2) to files that are delivered in the bundles
+* websocket - upgrade support to WebSocket
+* mongodb - async communications with MongoDB
+* cassandra - async communications using Thrift to Cassandra
+* freemarker - FreeMarker template support for wapp.
+
+Other general areas to consider:
+
+* Other template engines
+* Other database connections
