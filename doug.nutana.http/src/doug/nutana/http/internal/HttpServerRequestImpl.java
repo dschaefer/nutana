@@ -17,14 +17,11 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import doug.nutana.core.ReadStream;
 import doug.nutana.http.HttpServerRequest;
-import doug.nutana.net.Socket;
 
 public class HttpServerRequestImpl extends HttpServerRequest {
 
-	private final HttpServerImpl server;
-	private final Socket socket;
+	private final HttpConnection connection;
 	
 	private String method;
 	private String url;
@@ -44,24 +41,8 @@ public class HttpServerRequestImpl extends HttpServerRequest {
 	private static final Pattern startLinePattern = Pattern.compile("([^ ]+) ([^ ]+) (.*)");
 	private static final Pattern attributePattern = Pattern.compile("(.*): *(.*) *");
 	
-	public HttpServerRequestImpl(HttpServerImpl server, Socket socket) {
-		this.server = server;
-		this.socket = socket;
-		
-		socket.getReadStream().onData(new ReadStream.DataListener() {
-			@Override
-			public void handleData(ByteBuffer buffer) {
-				while (buffer.hasRemaining())
-					if (inHeader)
-						handleHeaderData(buffer);
-					else
-						handleChunkData(buffer);
-			}
-		});
-	}
-	
-	public Socket getSocket() {
-		return socket;
+	public HttpServerRequestImpl(HttpConnection connection) {
+		this.connection = connection;
 	}
 	
 	@Override
@@ -111,7 +92,7 @@ public class HttpServerRequestImpl extends HttpServerRequest {
 
 	@Override
 	public void close() throws IOException {
-		socket.close();
+		// TODO
 	}
 	
 	@Override
@@ -124,6 +105,14 @@ public class HttpServerRequestImpl extends HttpServerRequest {
 		super.fireEnd();
 	}
 	
+	public void handleData(ByteBuffer buffer) {
+		while (buffer.hasRemaining())
+			if (inHeader)
+				handleHeaderData(buffer);
+			else
+				handleChunkData(buffer);
+	}
+
 	private void handleHeaderData(ByteBuffer buffer) {
 		while (buffer.hasRemaining()) {
 			byte c = buffer.get();
@@ -141,11 +130,11 @@ public class HttpServerRequestImpl extends HttpServerRequest {
 					if (line.length() > 0) {
 						handleAttribute();
 					} else if (headers.get("ContentLength") != null || headers.get("TransferEncoding") != null) {
-						server.handleRequest(this);
+						connection.handleRequest(this);
 						inHeader = false;
 						return;
 					} else {
-						server.handleRequest(this);
+						connection.handleRequest(this);
 						atStartLine = true;
 					}
 				}

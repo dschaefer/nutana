@@ -11,7 +11,6 @@
 package doug.nutana.http.test;
 
 import java.net.InetSocketAddress;
-import java.nio.charset.Charset;
 
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
@@ -62,6 +61,14 @@ public class TestServer implements IApplication {
 			wait();
 		}
 		
+		try {
+			// Wait for buffers to clear
+			// TODO need a real handshake for this with the server
+			Thread.sleep(2000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
 		return 0;
 	}
 

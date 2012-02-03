@@ -35,7 +35,7 @@ public class HttpServerImpl implements HttpServer {
 		server.onConnection(new Server.ConnectionListener() {
 			@Override
 			public void handleConnection(Socket socket) {
-				new HttpServerRequestImpl(HttpServerImpl.this, socket);
+				new HttpConnection(HttpServerImpl.this, socket);
 			}
 		});
 		server.onError(new Server.ErrorListener() {
@@ -65,18 +65,12 @@ public class HttpServerImpl implements HttpServer {
 		requestListeners.add(listener);
 	}
 	
-	protected void fireRequest(HttpServerRequest request, HttpServerResponse response) {
+	public void fireRequest(HttpServerRequest request, HttpServerResponse response) {
 		if (requestListeners != null)
 			for (RequestListener listener : requestListeners)
 				listener.handleRequest(request, response);
 	}
 
-	public void handleRequest(HttpServerRequestImpl request) {
-		Socket socket = request.getSocket();
-		fireRequest(request, new HttpServerResponseImpl(socket));
-//		new HttpServerRequestImpl(this, socket);
-	}
-	
 	private List<ErrorListener> errorListeners;
 	
 	@Override
