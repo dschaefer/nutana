@@ -17,13 +17,14 @@ import java.nio.ByteBuffer;
 import junit.framework.Assert;
 
 import org.junit.Test;
-import org.osgi.framework.ServiceReference;
 
 import doug.nutana.core.ReadStream;
 import doug.nutana.core.WriteStream;
 import doug.nutana.net.Net;
 import doug.nutana.net.Server;
 import doug.nutana.net.Socket;
+
+import static doug.nutana.net.test.Activator.require;
 
 public class EchoTest {
 
@@ -33,8 +34,7 @@ public class EchoTest {
 	public void test1() throws Throwable {
 		final int PORT = 8001;
 		
-		ServiceReference<Net> ref = Activator.getContext().getServiceReference(Net.class);
-		Net net = Activator.getContext().getService(ref);
+		Net net = require(Net.class);
 		
 		Server echoServer = net.createServer();
 		echoServer.onError(new Server.ErrorListener() {
