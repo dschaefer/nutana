@@ -10,8 +10,6 @@
  *******************************************************************************/
 package doug.nutana.http.test;
 
-import java.net.InetSocketAddress;
-
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
 import doug.nutana.http.Http;
@@ -54,7 +52,7 @@ public class TestServer implements IApplication {
 				}
 			}
 		});
-		server.listen(new InetSocketAddress(8001));
+		server.listen(8001);
 		System.out.println("Listening...");
 
 		synchronized (this) {
