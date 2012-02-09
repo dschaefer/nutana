@@ -10,16 +10,14 @@
  *******************************************************************************/
 package doug.nutana.http.test;
 
-import java.net.InetSocketAddress;
-
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
-import org.osgi.framework.ServiceReference;
-
 import doug.nutana.http.Http;
 import doug.nutana.http.HttpServer;
 import doug.nutana.http.HttpServerRequest;
 import doug.nutana.http.HttpServerResponse;
+
+import static doug.nutana.http.test.Activator.require;
 
 /**
  * Simple test server.
@@ -30,8 +28,8 @@ public class TestServer implements IApplication {
 	
 	@Override
 	public Object start(IApplicationContext context) throws Exception {
-		ServiceReference<Http> ref = Activator.getContext().getServiceReference(Http.class);
-		Http httpService = Activator.getContext().getService(ref);
+		
+		Http httpService = require(Http.class);
 		
 		HttpServer server = httpService.createServer();
 		server.onRequest(new HttpServer.RequestListener() {
@@ -54,7 +52,7 @@ public class TestServer implements IApplication {
 				}
 			}
 		});
-		server.listen(new InetSocketAddress(8001));
+		server.listen(8001);
 		System.out.println("Listening...");
 
 		synchronized (this) {

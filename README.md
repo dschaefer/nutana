@@ -15,10 +15,9 @@ could modernize Java in the server space and totally get away from J2EE madness.
 Here is an example of what we're trying to achieve. This is from the first test
 server in the http.test plugin. Looks like node, but in Java.
 
-    ServiceReference<Http> ref = Activator.getContext().getServiceReference(Http.class);
-    Http httpService = Activator.getContext().getService(ref);
+    Http http = require(Http.class);
 		
-    HttpServer server = httpService.createServer();
+    HttpServer server = http.createServer();
     server.onRequest(new HttpServer.RequestListener() {
         @Override
         public void handleRequest(HttpServerRequest request, HttpServerResponse response) {
@@ -39,7 +38,7 @@ server in the http.test plugin. Looks like node, but in Java.
             }
         }
     });
-    server.listen(new InetSocketAddress(8001));
+    server.listen(8001);
 
 ## TODO list
 

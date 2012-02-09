@@ -15,6 +15,8 @@ import java.net.SocketAddress;
 
 public interface HttpServer {
 
+	void listen(int port) throws IOException;
+	
 	void listen(SocketAddress address) throws IOException;
 
 	void close() throws IOException;

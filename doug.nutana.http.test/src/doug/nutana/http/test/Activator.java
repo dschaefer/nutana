@@ -3,13 +3,15 @@ package doug.nutana.http.test;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
+import doug.nutana.core.Service;
+
 public class Activator implements BundleActivator {
 
 	private static BundleContext context;
 
-	static BundleContext getContext() {
-		return context;
-	}
+	static <T> T require(Class<T> clazz) {
+		return Service.require(context, clazz);
+    }
 
 	/*
 	 * (non-Javadoc)
