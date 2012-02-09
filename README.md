@@ -38,7 +38,7 @@ server in the http.test plugin. Looks like node, but in Java.
             }
         }
     });
-    server.listen(new InetSocketAddress(8001));
+    server.listen(8001);
 
 ## TODO list
 
